@@ -1,0 +1,96 @@
+export const TABS = [
+  {
+    id: 'C003',
+    label: '제품 목록',
+    description: [
+      '식약처에 신고된 건강기능식품 제품 전체 목록 (44,000+건)',
+      '신제품 모니터링, 경쟁사 분석, 시장 트렌드 파악에 활용',
+      '"원재료" 선택 시 원료 1개당 1행으로 분리되어 피벗 분석에 최적화',
+    ],
+    fixedColumns: [
+      { key: 'PRDLST_REPORT_NO', label: '품목신고번호' },
+      { key: 'PRDLST_NM', label: '제품명' },
+      { key: 'BSSH_NM', label: '업체명' },
+      { key: 'PRMS_DT', label: '신고일자' },
+    ],
+    optionalColumns: [
+      { key: 'PRDT_SHAP_CD_NM', label: '제형', desc: '정제/캡슐/분말/액상 등 제품 형태' },
+      { key: 'PRIMARY_FNCLTY', label: '기능성', desc: '해당 제품의 기능성 표시 내용' },
+      { key: 'RAWMTRL_NM', label: '원재료', desc: '원료별 행 분리 (피벗용)', splitRows: true },
+      { key: 'NTK_MTHD', label: '섭취방법', desc: '1일 섭취량 및 섭취 방법' },
+      { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
+      { key: 'POG_DAYCNT', label: '유통기한', desc: '유통기한 정보' },
+      { key: 'LAST_UPDT_DTM', label: '최종수정일', desc: '데이터 최종 업데이트 일자' },
+    ],
+    dateField: 'PRMS_DT',
+    searchFields: ['PRDLST_NM', 'BSSH_NM', 'PRIMARY_FNCLTY', 'RAWMTRL_NM'],
+  },
+  {
+    id: 'I2710',
+    label: '고시형 원료',
+    description: [
+      '식약처가 공식 허가한 건강기능식품 원료 목록 (521건)',
+      '각 원료의 기능성, 일일섭취량 기준, 주의사항 확인 가능',
+      'R&D 및 인허가 팀의 원료 기초 데이터로 활용',
+    ],
+    fixedColumns: [
+      { key: 'PRDCT_NM', label: '원료명' },
+      { key: 'PRIMARY_FNCLTY', label: '기능성' },
+    ],
+    optionalColumns: [
+      { key: 'DAY_INTK_LOWLIMIT', label: '일일섭취량 하한', desc: '하루 최소 섭취량' },
+      { key: 'DAY_INTK_HIGHLIMIT', label: '일일섭취량 상한', desc: '하루 최대 섭취량' },
+      { key: 'INTK_UNIT', label: '단위', desc: '섭취량 단위 (mg, g 등)' },
+      { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
+      { key: 'INTK_MEMO', label: '섭취 메모', desc: '추가 섭취 안내사항' },
+      { key: 'SKLL_IX_IRDNT_RAWMTRL', label: '지표성분', desc: '기능성 지표 원료명' },
+    ],
+    dateField: 'LAST_UPDT_DTM',
+    searchFields: ['PRDCT_NM', 'PRIMARY_FNCLTY'],
+  },
+  {
+    id: 'I-0040',
+    label: '기능성 원료 인정',
+    description: [
+      '업체가 신청하여 식약처에서 기능성을 공식 인정받은 원료 목록 (751건)',
+      '어떤 회사가 어떤 원료로 기능성을 인정받았는지 확인 가능',
+      '인허가 전략 수립 및 경쟁사 원료 동향 파악에 활용',
+    ],
+    fixedColumns: [
+      { key: 'APLC_RAWMTRL_NM', label: '원료명' },
+      { key: 'BSSH_NM', label: '신청업체' },
+      { key: 'PRMS_DT', label: '인정일자' },
+    ],
+    optionalColumns: [
+      { key: 'FNCLTY_CN', label: '기능성 내용', desc: '식약처 인정 기능성 표시 문구' },
+      { key: 'DAY_INTK_CN', label: '일일섭취량', desc: '인정된 일일 섭취량 기준' },
+      { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
+      { key: 'INDUTY_NM', label: '업종', desc: '제조업 / 수입업 구분' },
+      { key: 'ADDR', label: '주소', desc: '신청업체 주소' },
+    ],
+    dateField: 'PRMS_DT',
+    searchFields: ['APLC_RAWMTRL_NM', 'BSSH_NM', 'FNCLTY_CN'],
+  },
+  {
+    id: 'I-0050',
+    label: '개별인정형 원료',
+    description: [
+      '개별 심사를 통해 식약처 인정을 받은 기능성 원료 목록 (423건)',
+      '고시형보다 엄격한 심사 기준을 통과한 원료만 포함',
+      '인허가 번호 기반 원료 추적 및 기능성 범위 확인에 활용',
+    ],
+    fixedColumns: [
+      { key: 'RAWMTRL_NM', label: '원료명' },
+      { key: 'HF_FNCLTY_MTRAL_RCOGN_NO', label: '인정번호' },
+    ],
+    optionalColumns: [
+      { key: 'PRIMARY_FNCLTY', label: '기능성', desc: '인정된 기능성 내용 (국문/영문)' },
+      { key: 'DAY_INTK_LOWLIMIT', label: '섭취량 하한', desc: '하루 최소 섭취량' },
+      { key: 'DAY_INTK_HIGHLIMIT', label: '섭취량 상한', desc: '하루 최대 섭취량' },
+      { key: 'WT_UNIT', label: '단위', desc: '섭취량 단위' },
+      { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
+    ],
+    dateField: null,
+    searchFields: ['RAWMTRL_NM', 'PRIMARY_FNCLTY', 'HF_FNCLTY_MTRAL_RCOGN_NO'],
+  },
+]
