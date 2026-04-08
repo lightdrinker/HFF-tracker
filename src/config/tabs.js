@@ -4,7 +4,7 @@ export const TABS = [
     label: '제품 목록',
     description: [
       '식약처에 신고된 건강기능식품 제품 전체 목록 (44,000+건)',
-      '신제품 모니터링, 경쟁사 분석, 시장 트렌드 파악에 활용',
+      '검색어를 입력하면 서버에서 필터링된 결과만 가져옵니다',
       '"원재료" 선택 시 원료 1개당 1행으로 분리되어 피벗 분석에 최적화',
     ],
     fixedColumns: [
@@ -21,9 +21,20 @@ export const TABS = [
       { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
       { key: 'POG_DAYCNT', label: '유통기한', desc: '유통기한 정보' },
       { key: 'LAST_UPDT_DTM', label: '최종수정일', desc: '데이터 최종 업데이트 일자' },
+      { key: 'LCNS_NO', label: '인허가번호', desc: '제품 인허가 고유번호' },
+      { key: 'STDR_STND', label: '기준규격', desc: '성분 함량 기준 및 시험법' },
+      { key: 'DISPOS', label: '성상', desc: '제품 외형 설명 (색상, 형태 등)' },
+      { key: 'CSTDY_MTHD', label: '보관방법', desc: '냉장/실온 등 보관 조건' },
+      { key: 'CRET_DTM', label: '데이터 생성일', desc: '데이터가 처음 등록된 일자' },
     ],
     dateField: 'PRMS_DT',
+    serverFilterFields: [
+      { key: 'PRDLST_NM', label: '제품명' },
+      { key: 'BSSH_NM', label: '업체명' },
+      { key: 'RAWMTRL_NM', label: '원재료' },
+    ],
     searchFields: ['PRDLST_NM', 'BSSH_NM', 'PRIMARY_FNCLTY', 'RAWMTRL_NM'],
+    useServerFilter: true,
   },
   {
     id: 'I2710',
@@ -44,9 +55,12 @@ export const TABS = [
       { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
       { key: 'INTK_MEMO', label: '섭취 메모', desc: '추가 섭취 안내사항' },
       { key: 'SKLL_IX_IRDNT_RAWMTRL', label: '지표성분', desc: '기능성 지표 원료명' },
+      { key: 'LAST_UPDT_DTM', label: '최종수정일', desc: '데이터 최종 업데이트 일자' },
+      { key: 'CRET_DTM', label: '데이터 생성일', desc: '데이터가 처음 등록된 일자' },
     ],
     dateField: 'LAST_UPDT_DTM',
     searchFields: ['PRDCT_NM', 'PRIMARY_FNCLTY'],
+    useServerFilter: false,
   },
   {
     id: 'I-0040',
@@ -62,6 +76,7 @@ export const TABS = [
       { key: 'PRMS_DT', label: '인정일자' },
     ],
     optionalColumns: [
+      { key: 'HF_FNCLTY_MTRAL_RCOGN_NO', label: '인정번호', desc: '기능성 원료 인정 고유번호' },
       { key: 'FNCLTY_CN', label: '기능성 내용', desc: '식약처 인정 기능성 표시 문구' },
       { key: 'DAY_INTK_CN', label: '일일섭취량', desc: '인정된 일일 섭취량 기준' },
       { key: 'IFTKN_ATNT_MATR_CN', label: '주의사항', desc: '섭취 시 주의사항' },
@@ -70,6 +85,7 @@ export const TABS = [
     ],
     dateField: 'PRMS_DT',
     searchFields: ['APLC_RAWMTRL_NM', 'BSSH_NM', 'FNCLTY_CN'],
+    useServerFilter: false,
   },
   {
     id: 'I-0050',
@@ -92,5 +108,6 @@ export const TABS = [
     ],
     dateField: null,
     searchFields: ['RAWMTRL_NM', 'PRIMARY_FNCLTY', 'HF_FNCLTY_MTRAL_RCOGN_NO'],
+    useServerFilter: false,
   },
 ]
