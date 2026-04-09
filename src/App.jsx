@@ -2,11 +2,18 @@ import { useState } from 'react'
 import { TABS } from './config/tabs'
 import TabView from './components/TabView'
 import NutrientAnalysisView from './components/NutrientAnalysisView'
+import IngredientDictView from './components/IngredientDictView'
 import './App.css'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS[0].id)
   const tab = TABS.find(t => t.id === activeTab)
+
+  function renderTab() {
+    if (tab.customComponent === 'ingredient-dict') return <IngredientDictView key={activeTab} tab={tab} />
+    if (tab.customComponent) return <NutrientAnalysisView key={activeTab} tab={tab} />
+    return <TabView key={activeTab} tab={tab} />
+  }
 
   return (
     <div className="app">
@@ -28,10 +35,7 @@ export default function App() {
       </nav>
 
       <main className="main">
-        {tab.customComponent
-          ? <NutrientAnalysisView key={activeTab} tab={tab} />
-          : <TabView key={activeTab} tab={tab} />
-        }
+        {renderTab()}
       </main>
     </div>
   )
