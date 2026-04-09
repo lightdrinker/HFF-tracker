@@ -8,13 +8,21 @@ function buildUrl(endpoint, startIdx, endIdx, filterField, filterValue) {
   return url
 }
 
+// Extract endpoint data from response (handles both Vercel proxy and direct API)
+function extractData(data, endpoint) {
+  if (data && data.row) return data
+  if (data && data[endpoint]) return data[endpoint]
+  return null
+}
+
 // Fetch a single page for display (server-side pagination)
 export async function fetchPage(endpoint, page = 1, pageSize = 20, filterField, filterValue) {
   const startIdx = (page - 1) * pageSize + 1
   const endIdx = startIdx + pageSize - 1
   const url = buildUrl(endpoint, startIdx, endIdx, filterField, filterValue)
   const res = await fetch(url)
-  const data = await res.json()
+  const raw = await res.json()
+  const data = extractData(raw, endpoint)
 
   if (!data || !data.row) return { items: [], totalCount: 0 }
 
@@ -34,7 +42,8 @@ export async function fetchAllForExport(endpoint, onProgress, filterField, filte
     const endIdx = startIdx + PAGE_SIZE - 1
     const url = buildUrl(endpoint, startIdx, endIdx, filterField, filterValue)
     const res = await fetch(url)
-    const data = await res.json()
+    const raw = await res.json()
+    const data = extractData(raw, endpoint)
 
     if (!data || !data.row) break
 

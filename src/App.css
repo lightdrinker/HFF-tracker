@@ -397,3 +397,148 @@ body {
 .pagination button:hover:not(:disabled) { border-color: #2563eb; color: #2563eb; }
 .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 .pagination span { font-size: 14px; color: #475569; padding: 0 8px; }
+
+/* ===== Nutrient Analysis Table ===== */
+.rda-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.rda-legend-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 4px;
+}
+.rda-legend-item {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 4px;
+  color: #1a1a2e;
+}
+
+.nutrient-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.nutrient-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  min-width: max-content;
+}
+
+/* Sticky header rows */
+.nutrient-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f1f5f9;
+  padding: 8px 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+/* Second header row needs different top offset */
+.nutrient-table thead tr:nth-child(2) th {
+  top: 37px;
+  background: #f8fafc;
+}
+
+/* Sticky first 2 columns */
+.nt-sticky {
+  position: sticky !important;
+  z-index: 3 !important;
+  background: #fff !important;
+}
+.nt-sticky-name {
+  left: 0;
+  min-width: 200px;
+  max-width: 200px;
+}
+.nt-sticky-company {
+  left: 200px;
+  min-width: 130px;
+  max-width: 130px;
+  border-right: 2px solid #cbd5e1 !important;
+}
+
+/* Sticky header + sticky column intersection */
+.nutrient-table thead .nt-sticky {
+  z-index: 5 !important;
+  background: #f1f5f9 !important;
+}
+.nutrient-table thead tr:nth-child(2) .nt-sticky {
+  background: #f8fafc !important;
+}
+
+/* Section header */
+.nt-section-header {
+  background: #374151 !important;
+  color: #fff !important;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.nt-other-header {
+  background: #374151 !important;
+  color: #fff !important;
+  font-size: 13px;
+}
+
+/* RDA sub-header cells */
+.nt-rda-cell {
+  font-weight: 500 !important;
+}
+.nt-rda-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+}
+.nt-rda-value {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 400;
+  margin-top: 1px;
+}
+
+/* Data cells */
+.nutrient-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nutrient-table tr:hover td {
+  filter: brightness(0.95);
+}
+.nutrient-table td.nt-sticky {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nt-value-cell {
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  min-width: 70px;
+}
+
+.nt-other-cell {
+  max-width: 300px;
+  font-size: 11px;
+  color: #475569;
+}

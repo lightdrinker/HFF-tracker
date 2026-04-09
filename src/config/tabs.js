@@ -101,4 +101,20 @@ export const TABS = [
     searchFields: ['RAWMTRL_NM', 'PRIMARY_FNCLTY', 'HF_FNCLTY_MTRAL_RCOGN_NO'],
     useServerFilter: false,
   },
+  {
+    id: 'nutrient-analysis',
+    label: '성분 함량 분석',
+    description: [
+      '식약처에 신고된 건강기능식품 제품 전체 목록 (44,000+건)의 영양소별 함량을 분석합니다',
+      '25개 영양성분의 RDA 대비 함량을 색상으로 구분하고, 기타 기능성원료도 함께 표시합니다',
+    ],
+    customComponent: true,
+    sourceEndpoint: 'C003',
+    serverFilterFields: [
+      { key: 'PRDLST_NM', label: '제품명' },
+      { key: 'BSSH_NM', label: '업체명' },
+      { key: 'RAWMTRL_NM', label: '원재료' },
+    ],
+    useServerFilter: true,
+  },
 ]

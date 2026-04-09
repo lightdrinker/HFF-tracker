@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 export function exportToExcel(rows, columns, filename) {
   const headers = columns.map(c => c.label)
