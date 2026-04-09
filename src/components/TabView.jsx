@@ -287,7 +287,9 @@ export default function TabView({ tab }) {
               </span>
             )}
             {newCount > 0 && (
-              <span className="new-badge">NEW 30일 내 신규 {newCount}건</span>
+              <span className={`new-badge ${tab.dateLabel === '수정됨' ? 'updated' : ''}`}>
+                {tab.dateLabel === '수정됨' ? '수정됨' : 'NEW'} 30일 내 {tab.dateLabel === '수정됨' ? '수정' : '신규'} {newCount}건
+              </span>
             )}
           </div>
 
@@ -361,7 +363,7 @@ export default function TabView({ tab }) {
                 <thead>
                   <tr>
                     {activeColumns.map(c => <th key={c.key}>{c.label}</th>)}
-                    {tab.dateField && <th>NEW</th>}
+                    {tab.dateField && <th>{tab.dateLabel || 'NEW'}</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -378,7 +380,7 @@ export default function TabView({ tab }) {
                         </td>
                       ))}
                       {tab.dateField && (
-                        <td>{isNew(row[tab.dateField]) ? <span className="new-dot">NEW</span> : ''}</td>
+                        <td>{isNew(row[tab.dateField]) ? <span className={`new-dot ${tab.dateLabel === '수정됨' ? 'updated' : ''}`}>{tab.dateLabel === '수정됨' ? '수정' : 'NEW'}</span> : ''}</td>
                       )}
                     </tr>
                   ))}

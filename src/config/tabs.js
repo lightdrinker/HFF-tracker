@@ -25,6 +25,7 @@ export const TABS = [
       { key: 'CRET_DTM', label: '데이터 생성일', desc: '데이터가 처음 등록된 일자' },
     ],
     dateField: 'PRMS_DT',
+    dateLabel: 'NEW',
     serverFilterFields: [
       { key: 'PRDLST_NM', label: '제품명' },
       { key: 'BSSH_NM', label: '업체명' },
@@ -53,6 +54,7 @@ export const TABS = [
       { key: 'CRET_DTM', label: '데이터 생성일', desc: '데이터가 처음 등록된 일자' },
     ],
     dateField: 'LAST_UPDT_DTM',
+    dateLabel: '수정됨',
     searchFields: ['PRDCT_NM', 'PRIMARY_FNCLTY'],
     useServerFilter: false,
   },
@@ -75,6 +77,7 @@ export const TABS = [
       { key: 'ADDR', label: '주소', desc: '신청업체 주소' },
     ],
     dateField: 'PRMS_DT',
+    dateLabel: 'NEW',
     searchFields: ['APLC_RAWMTRL_NM', 'BSSH_NM', 'FNCLTY_CN'],
     useServerFilter: false,
   },
