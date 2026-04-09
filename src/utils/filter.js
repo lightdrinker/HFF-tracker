@@ -26,19 +26,3 @@ export function filterBySearch(items, keyword, searchFields) {
     searchFields.some(f => (item[f] || '').toLowerCase().includes(kw))
   )
 }
-
-export function expandByIngredient(items) {
-  const result = []
-  for (const item of items) {
-    const raw = item.RAWMTRL_NM || ''
-    const ingredients = raw.split(/,|·/).map(s => s.trim()).filter(Boolean)
-    if (ingredients.length === 0) {
-      result.push({ ...item, RAWMTRL_NM: '' })
-    } else {
-      for (const ing of ingredients) {
-        result.push({ ...item, RAWMTRL_NM: ing })
-      }
-    }
-  }
-  return result
-}

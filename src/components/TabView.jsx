@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { fetchPage, fetchAllForExport } from '../api/fetchAll'
-import { filterByPeriod, filterBySearch, expandByIngredient, isNew } from '../utils/filter'
+import { filterByPeriod, filterBySearch, isNew } from '../utils/filter'
 import { exportToExcel } from '../utils/excel'
 
 const PAGE_SIZE = 20
@@ -14,10 +14,14 @@ const PERIOD_OPTIONS = [
 ]
 
 export default function TabView({ tab }) {
-  // Server-filter mode (C003)
   const isServerFilter = tab.useServerFilter
 
-  // For server-filtered tabs: paginated display
+  // Active columns: which columns are "확정" (selected for display/export)
+  const [activeKeys, setActiveKeys] = useState(() =>
+    tab.columns.filter(c => c.defaultOn).map(c => c.key)
+  )
+
+  // Server-filtered tabs: paginated display
   const [pageData, setPageData] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
@@ -30,14 +34,13 @@ export default function TabView({ tab }) {
   const [serverFilterValue, setServerFilterValue] = useState('')
   const [appliedFilter, setAppliedFilter] = useState({ field: '', value: '' })
 
-  // For small-data tabs: all data loaded at once
+  // Small-data tabs: all data loaded at once
   const [allData, setAllData] = useState([])
   const [allLoaded, setAllLoaded] = useState(false)
 
   // Common
   const [localSearch, setLocalSearch] = useState('')
   const [period, setPeriod] = useState('all')
-  const [selectedOptional, setSelectedOptional] = useState([])
 
   // Excel export
   const [exporting, setExporting] = useState(false)
@@ -45,6 +48,7 @@ export default function TabView({ tab }) {
 
   // Reset on tab change
   useEffect(() => {
+    setActiveKeys(tab.columns.filter(c => c.defaultOn).map(c => c.key))
     setPageData([])
     setAllData([])
     setAllLoaded(false)
@@ -55,9 +59,18 @@ export default function TabView({ tab }) {
     setAppliedFilter({ field: '', value: '' })
     setLocalSearch('')
     setPeriod('all')
-    setSelectedOptional([])
     setExporting(false)
   }, [tab.id])
+
+  // Column objects for active/inactive
+  const activeColumns = useMemo(() =>
+    activeKeys.map(key => tab.columns.find(c => c.key === key)).filter(Boolean),
+    [activeKeys, tab.columns]
+  )
+  const inactiveColumns = useMemo(() =>
+    tab.columns.filter(c => !activeKeys.includes(c.key)),
+    [activeKeys, tab.columns]
+  )
 
   // === Server-filtered tabs (C003): fetch page from API ===
   const loadPage = useCallback(async (pageNum, filterField, filterValue) => {
@@ -70,14 +83,10 @@ export default function TabView({ tab }) {
     setLoading(false)
   }, [tab.id])
 
-  // Initial load for server-filtered tabs
   useEffect(() => {
-    if (isServerFilter) {
-      loadPage(1, '', '')
-    }
+    if (isServerFilter) loadPage(1, '', '')
   }, [isServerFilter, loadPage])
 
-  // Page change for server-filtered tabs
   useEffect(() => {
     if (isServerFilter && page > 0) {
       loadPage(page, appliedFilter.field, appliedFilter.value)
@@ -87,18 +96,11 @@ export default function TabView({ tab }) {
   // === Small-data tabs: load all at once ===
   async function loadAllData() {
     setLoading(true)
-    const { fetchAllForExport: fetchAll } = await import('../api/fetchAll')
-    const items = await fetchAll(tab.id, null)
+    const items = await fetchAllForExport(tab.id, null)
     setAllData(items)
     setAllLoaded(true)
     setLoading(false)
   }
-
-  // === Column logic ===
-  const activeColumns = useMemo(() => {
-    const optional = tab.optionalColumns.filter(c => selectedOptional.includes(c.key))
-    return [...tab.fixedColumns, ...optional]
-  }, [tab, selectedOptional])
 
   // === Display data for small-data tabs ===
   const filteredSmallData = useMemo(() => {
@@ -126,6 +128,14 @@ export default function TabView({ tab }) {
   }, [displayData, tab.dateField])
 
   // === Handlers ===
+  function addColumn(key) {
+    setActiveKeys(prev => [...prev, key])
+  }
+
+  function removeColumn(key) {
+    setActiveKeys(prev => prev.filter(k => k !== key))
+  }
+
   function handleServerSearch() {
     setAppliedFilter({ field: serverFilterField, value: serverFilterValue })
     setPage(1)
@@ -139,12 +149,6 @@ export default function TabView({ tab }) {
     setServerFilterValue('')
     setAppliedFilter({ field: '', value: '' })
     setPage(1)
-  }
-
-  function toggleOptional(key) {
-    setSelectedOptional(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    )
   }
 
   async function handleExport() {
@@ -165,11 +169,6 @@ export default function TabView({ tab }) {
       items = filterByPeriod(items, tab.dateField, period)
       items = filterBySearch(items, localSearch, tab.searchFields)
     }
-
-    // Expand ingredients if selected
-    const hasSplit = selectedOptional.includes('RAWMTRL_NM') &&
-      tab.optionalColumns.find(c => c.key === 'RAWMTRL_NM')?.splitRows
-    if (hasSplit) items = expandByIngredient(items)
 
     exportToExcel(items, activeColumns, tab.label)
     setExporting(false)
@@ -271,33 +270,45 @@ export default function TabView({ tab }) {
             )}
           </div>
 
-          {/* Column selector */}
+          {/* Column selector — 확정/선택 토글 */}
           <div className="column-selector">
-            <div className="column-fixed">
-              <span className="col-label-fixed">고정 컬럼</span>
-              {tab.fixedColumns.map(c => (
-                <span key={c.key} className="col-tag fixed">{c.label}</span>
-              ))}
+            <div className="column-active">
+              <span className="col-section-label">확정 컬럼</span>
+              <div className="col-tags">
+                {activeColumns.map(c => (
+                  <button
+                    key={c.key}
+                    className="col-tag active"
+                    onClick={() => removeColumn(c.key)}
+                    title={c.desc || c.label}
+                  >
+                    {c.label} ✕
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="column-optional">
-              <span className="col-label-optional">선택 컬럼</span>
-              {tab.optionalColumns.map(c => (
-                <label key={c.key} className="col-checkbox" title={c.desc}>
-                  <input
-                    type="checkbox"
-                    checked={selectedOptional.includes(c.key)}
-                    onChange={() => toggleOptional(c.key)}
-                  />
-                  {c.label}
-                  {c.splitRows && <span className="split-hint"> (행 분리)</span>}
-                </label>
-              ))}
-            </div>
+            {inactiveColumns.length > 0 && (
+              <div className="column-inactive">
+                <span className="col-section-label">선택 컬럼</span>
+                <div className="col-tags">
+                  {inactiveColumns.map(c => (
+                    <button
+                      key={c.key}
+                      className="col-tag inactive"
+                      onClick={() => addColumn(c.key)}
+                      title={c.desc || c.label}
+                    >
+                      + {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Export button */}
           <div className="export-row">
-            <button className="btn-export" onClick={handleExport} disabled={exporting}>
+            <button className="btn-export" onClick={handleExport} disabled={exporting || activeKeys.length === 0}>
               {exporting
                 ? `수집 중... ${exportProgress.current.toLocaleString()} / ${exportProgress.total.toLocaleString()}건`
                 : `엑셀 추출 (${displayTotal.toLocaleString()}건)`
@@ -314,35 +325,39 @@ export default function TabView({ tab }) {
           </div>
 
           {/* Table */}
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  {activeColumns.map(c => <th key={c.key}>{c.label}</th>)}
-                  {tab.dateField && <th>NEW</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">불러오는 중...</td></tr>
-                ) : displayData.length === 0 ? (
-                  <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">검색 결과가 없습니다</td></tr>
-                ) : displayData.map((row, i) => (
-                  <tr key={i}>
-                    {activeColumns.map(c => (
-                      <td key={c.key} title={row[c.key] || ''}>
-                        {(row[c.key] || '').slice(0, 80)}
-                        {(row[c.key] || '').length > 80 ? '...' : ''}
-                      </td>
-                    ))}
-                    {tab.dateField && (
-                      <td>{isNew(row[tab.dateField]) ? <span className="new-dot">NEW</span> : ''}</td>
-                    )}
+          {activeKeys.length === 0 ? (
+            <div className="empty-msg">확정 컬럼을 1개 이상 선택해주세요</div>
+          ) : (
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    {activeColumns.map(c => <th key={c.key}>{c.label}</th>)}
+                    {tab.dateField && <th>NEW</th>}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">불러오는 중...</td></tr>
+                  ) : displayData.length === 0 ? (
+                    <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">검색 결과가 없습니다</td></tr>
+                  ) : displayData.map((row, i) => (
+                    <tr key={i}>
+                      {activeColumns.map(c => (
+                        <td key={c.key} title={row[c.key] || ''}>
+                          {(row[c.key] || '').slice(0, 80)}
+                          {(row[c.key] || '').length > 80 ? '...' : ''}
+                        </td>
+                      ))}
+                      {tab.dateField && (
+                        <td>{isNew(row[tab.dateField]) ? <span className="new-dot">NEW</span> : ''}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
