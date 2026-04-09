@@ -139,16 +139,32 @@ export default function TabView({ tab }) {
     setActiveKeys(prev => prev.filter(k => k !== key))
   }
 
+  const [swapping, setSwapping] = useState(null) // { key, dir }
+
   function moveColumn(key, dir) {
-    setActiveKeys(prev => {
-      const idx = prev.indexOf(key)
-      if (idx < 0) return prev
-      const newIdx = idx + dir
-      if (newIdx < 0 || newIdx >= prev.length) return prev
-      const next = [...prev]
-      ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
-      return next
-    })
+    const idx = activeKeys.indexOf(key)
+    if (idx < 0) return
+    const newIdx = idx + dir
+    if (newIdx < 0 || newIdx >= activeKeys.length) return
+
+    const otherKey = activeKeys[newIdx]
+    setSwapping({ a: key, b: otherKey, dir })
+
+    setTimeout(() => {
+      setActiveKeys(prev => {
+        const next = [...prev]
+        ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
+        return next
+      })
+      setSwapping(null)
+    }, 300)
+  }
+
+  function getSwapStyle(key) {
+    if (!swapping) return {}
+    if (key === swapping.a) return { transform: `translateX(${swapping.dir * 100}%)`, transition: 'transform 0.3s ease' }
+    if (key === swapping.b) return { transform: `translateX(${-swapping.dir * 100}%)`, transition: 'transform 0.3s ease' }
+    return {}
   }
 
   function handleServerSearch() {
@@ -281,9 +297,9 @@ export default function TabView({ tab }) {
               <span className="col-section-label">확정 컬럼 <span className="col-hint">( ‹ › 화살표로 엑셀 컬럼 순서 변경 )</span></span>
               <div className="col-tags">
                 {activeColumns.map((c, idx) => (
-                  <span key={c.key} className="col-tag-group">
+                  <span key={c.key} className="col-tag-group" style={getSwapStyle(c.key)}>
                     {idx > 0 && (
-                      <button className="col-move" onClick={() => moveColumn(c.key, -1)} title="왼쪽으로">‹</button>
+                      <button className="col-move" onClick={() => moveColumn(c.key, -1)} disabled={!!swapping} title="왼쪽으로">‹</button>
                     )}
                     <button
                       className="col-tag active"
@@ -293,7 +309,7 @@ export default function TabView({ tab }) {
                       {c.label} ✕
                     </button>
                     {idx < activeKeys.length - 1 && (
-                      <button className="col-move" onClick={() => moveColumn(c.key, 1)} title="오른쪽으로">›</button>
+                      <button className="col-move" onClick={() => moveColumn(c.key, 1)} disabled={!!swapping} title="오른쪽으로">›</button>
                     )}
                   </span>
                 ))}
