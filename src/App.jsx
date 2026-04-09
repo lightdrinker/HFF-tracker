@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TABS } from './config/tabs'
 import TabView from './components/TabView'
+import NutrientAnalysisView from './components/NutrientAnalysisView'
 import './App.css'
 
 export default function App() {
@@ -27,7 +28,10 @@ export default function App() {
       </nav>
 
       <main className="main">
-        <TabView key={activeTab} tab={tab} />
+        {tab.customComponent
+          ? <NutrientAnalysisView key={activeTab} tab={tab} />
+          : <TabView key={activeTab} tab={tab} />
+        }
       </main>
     </div>
   )
