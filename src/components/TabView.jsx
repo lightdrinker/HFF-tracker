@@ -278,7 +278,7 @@ export default function TabView({ tab }) {
           {/* Column selector — 확정/선택 토글 */}
           <div className="column-selector">
             <div className="column-active">
-              <span className="col-section-label">확정 컬럼</span>
+              <span className="col-section-label">확정 컬럼 <span className="col-hint">( ‹ › 화살표로 엑셀 컬럼 순서 변경 )</span></span>
               <div className="col-tags">
                 {activeColumns.map((c, idx) => (
                   <span key={c.key} className="col-tag-group">
