@@ -480,18 +480,6 @@ body {
   z-index: 3 !important;
   background: #fff !important;
 }
-.nt-sticky-name {
-  left: 0;
-  min-width: 200px;
-  max-width: 200px;
-}
-.nt-sticky-company {
-  left: 200px;
-  min-width: 130px;
-  max-width: 130px;
-  border-right: 2px solid #cbd5e1 !important;
-}
-
 /* Sticky header + sticky column intersection */
 .nutrient-table thead .nt-sticky {
   z-index: 5 !important;
@@ -560,3 +548,222 @@ body {
   font-size: 11px;
   color: #475569;
 }
+
+/* ===== Cart (Pick) System ===== */
+.view-toggle {
+  display: inline-flex;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: auto;
+}
+.view-toggle-btn {
+  padding: 6px 16px;
+  border: none;
+  background: white;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.view-toggle-btn:hover:not(:disabled) { background: #f1f5f9; }
+.view-toggle-btn.active { background: #2563eb; color: white; }
+.view-toggle-btn.picked.active { background: #7c3aed; color: white; }
+.view-toggle-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.pick-tags-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.pick-tags-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7c3aed;
+  white-space: nowrap;
+}
+.pick-tags-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.pick-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: #ede9fe;
+  color: #6d28d9;
+  border: 1px solid #c4b5fd;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pick-tag-remove {
+  border: none;
+  background: none;
+  color: #a78bfa;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.pick-tag-remove:hover { color: #dc2626; }
+.pick-clear-all {
+  padding: 4px 12px;
+  border: 1px solid #e9d5ff;
+  background: white;
+  color: #7c3aed;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pick-clear-all:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+
+.row-picked td { background: #faf5ff !important; }
+.row-picked:hover td { background: #f3e8ff !important; }
+
+/* Checkbox sticky column */
+.nt-sticky-check {
+  left: 0;
+  min-width: 40px;
+  max-width: 40px;
+  text-align: center !important;
+}
+.nt-sticky-name {
+  left: 40px;
+  min-width: 200px;
+  max-width: 200px;
+}
+.nt-sticky-company {
+  left: 240px;
+  min-width: 130px;
+  max-width: 130px;
+  border-right: 2px solid #cbd5e1 !important;
+}
+
+/* ===== Filter Accordion ===== */
+.filter-accordion {
+  margin-bottom: 12px;
+}
+.filter-accordion-toggle {
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.filter-accordion-toggle:hover { color: #2563eb; }
+.filter-count {
+  background: #2563eb;
+  color: white;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.filter-accordion-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  padding: 12px 0 4px;
+}
+
+/* Multi-select filter groups */
+.multi-filter-group {
+  position: relative;
+  min-width: 160px;
+}
+.multi-filter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+.multi-filter-header:hover { border-color: #93c5fd; }
+.multi-filter-label {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+.multi-filter-value {
+  color: #64748b;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160px;
+}
+.multi-filter-arrow {
+  font-size: 10px;
+  color: #94a3b8;
+}
+.multi-filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  min-width: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+.multi-filter-dropdown.nutrient-dropdown {
+  min-width: 200px;
+  columns: 2;
+  column-gap: 0;
+}
+.multi-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.1s;
+  break-inside: avoid;
+}
+.multi-filter-option:hover { background: #f1f5f9; }
+.multi-filter-option input[type="checkbox"] {
+  accent-color: #2563eb;
+}
+.btn-filter-clear {
+  padding: 7px 14px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  align-self: flex-start;
+}
+.btn-filter-clear:hover { background: #fee2e2; }
