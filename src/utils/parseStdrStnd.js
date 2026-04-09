@@ -41,13 +41,17 @@ export function parseStdrStnd(text) {
   for (const rawLine of lines) {
     const line = rawLine.trim()
     if (!line) continue
-    if (line.startsWith('[') && line.endsWith(']')) continue // 섹션 헤더 스킵
-    if (/^\d+\)\s*성상/.test(line)) continue // 성상 라인 스킵
+    if (/^\[.*\]$/.test(line)) continue // 섹션 헤더 스킵 (예: [MVM정제])
+    if (/^\[.*–.*\]$/.test(line)) continue // 섹션 헤더 스킵 (예: [칼슘, 마그네슘 – 정제])
     if (shouldSkip(line)) continue
 
-    // "번호) 성분명 : 표시량(숫자 단위/...)의 ..." 패턴
-    const match = line.match(
-      /(?:\d+\)\s*)?(.+?)\s*:\s*표시량\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/
+    // 번호 접두사 제거: "2) ", "(2) ", "(2)", "② " 등
+    const cleaned = line.replace(/^(?:\(?\d+\)?\s*|\d+\)\s*|[①-㉕]\s*)/, '')
+    if (/^성상\s*:/.test(cleaned)) continue // 성상 라인 스킵
+
+    // "성분명 : 표시량(숫자 단위/...)의 ..." 패턴
+    const match = cleaned.match(
+      /(.+?)\s*:\s*표시량\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/
     )
 
     if (match) {
@@ -70,8 +74,8 @@ export function parseStdrStnd(text) {
     }
 
     // 표시량 패턴이 아닌 경우: "성분명 : 숫자 단위 이상" 등
-    const match2 = line.match(
-      /(?:\d+\)\s*)?(.+?)\s*:\s*([\d,\.]+)\s*(\S+)/
+    const match2 = cleaned.match(
+      /(.+?)\s*:\s*([\d,\.]+)\s*(\S+)/
     )
     if (match2) {
       const name = match2[1].trim()
