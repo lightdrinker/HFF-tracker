@@ -93,14 +93,17 @@ export default function TabView({ tab }) {
     }
   }, [page, appliedFilter, isServerFilter, loadPage])
 
-  // === Small-data tabs: load all at once ===
-  async function loadAllData() {
-    setLoading(true)
-    const items = await fetchAllForExport(tab.id, null)
-    setAllData(items)
-    setAllLoaded(true)
-    setLoading(false)
-  }
+  // === Small-data tabs: auto-load all at once ===
+  useEffect(() => {
+    if (!isServerFilter && !allLoaded) {
+      setLoading(true)
+      fetchAllForExport(tab.id, null).then(items => {
+        setAllData(items)
+        setAllLoaded(true)
+        setLoading(false)
+      })
+    }
+  }, [tab.id, isServerFilter, allLoaded])
 
   // === Display data for small-data tabs ===
   const filteredSmallData = useMemo(() => {
@@ -134,6 +137,18 @@ export default function TabView({ tab }) {
 
   function removeColumn(key) {
     setActiveKeys(prev => prev.filter(k => k !== key))
+  }
+
+  function moveColumn(key, dir) {
+    setActiveKeys(prev => {
+      const idx = prev.indexOf(key)
+      if (idx < 0) return prev
+      const newIdx = idx + dir
+      if (newIdx < 0 || newIdx >= prev.length) return prev
+      const next = [...prev]
+      ;[next[idx], next[newIdx]] = [next[newIdx], next[idx]]
+      return next
+    })
   }
 
   function handleServerSearch() {
@@ -175,7 +190,7 @@ export default function TabView({ tab }) {
   }
 
   // === Render ===
-  const isReady = isServerFilter || allLoaded
+  const isReady = isServerFilter || allLoaded || loading
 
   return (
     <div className="tab-view">
@@ -217,18 +232,8 @@ export default function TabView({ tab }) {
         </div>
       )}
 
-      {/* Load button for small-data tabs */}
-      {!isServerFilter && !allLoaded && (
-        <div className="load-section">
-          <button className="btn-primary" onClick={loadAllData} disabled={loading}>
-            {loading ? '불러오는 중...' : '데이터 불러오기'}
-          </button>
-          {loading && <span className="loading-hint">데이터를 가져오는 중입니다. 잠시만 기다려주세요.</span>}
-        </div>
-      )}
-
       {/* Local filter for small-data tabs */}
-      {!isServerFilter && allLoaded && (
+      {!isServerFilter && (
         <div className="filter-row">
           {tab.dateField && (
             <div className="period-filter">
@@ -275,15 +280,22 @@ export default function TabView({ tab }) {
             <div className="column-active">
               <span className="col-section-label">확정 컬럼</span>
               <div className="col-tags">
-                {activeColumns.map(c => (
-                  <button
-                    key={c.key}
-                    className="col-tag active"
-                    onClick={() => removeColumn(c.key)}
-                    title={c.desc || c.label}
-                  >
-                    {c.label} ✕
-                  </button>
+                {activeColumns.map((c, idx) => (
+                  <span key={c.key} className="col-tag-group">
+                    {idx > 0 && (
+                      <button className="col-move" onClick={() => moveColumn(c.key, -1)} title="왼쪽으로">‹</button>
+                    )}
+                    <button
+                      className="col-tag active"
+                      onClick={() => removeColumn(c.key)}
+                      title={c.desc || c.label}
+                    >
+                      {c.label} ✕
+                    </button>
+                    {idx < activeKeys.length - 1 && (
+                      <button className="col-move" onClick={() => moveColumn(c.key, 1)} title="오른쪽으로">›</button>
+                    )}
+                  </span>
                 ))}
               </div>
             </div>

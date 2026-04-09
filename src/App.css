@@ -285,6 +285,29 @@ body {
   border-color: #93c5fd;
 }
 
+.col-tag-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+.col-move {
+  padding: 4px 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.col-move:hover {
+  color: #2563eb;
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
 .empty-msg {
   text-align: center;
   padding: 40px;
