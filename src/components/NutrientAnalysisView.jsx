@@ -89,7 +89,7 @@ export default function NutrientAnalysisView({ tab }) {
   const [exporting, setExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 })
 
-  const SHAPE_OPTIONS = ['정제', '캡슐', '연질캡슐', '경질캡슐', '분말', '과립', '액상', '젤리', '환', '시럽', '바']
+  const SHAPE_OPTIONS = ['정', '캡슐', '분말', '액상', '젤리', '환', '기타', '과립', '겔', '바', '시럽', '페이스트상', '편상']
   const FNCLTY_OPTIONS = [
     '면역', '뼈', '관절', '혈행', '혈당', '혈압', '콜레스테롤',
     '장건강', '간건강', '눈건강', '피부', '체지방', '항산화',
