@@ -630,8 +630,7 @@ body {
 }
 .pick-clear-all:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
 
-.row-picked td { background: #faf5ff !important; }
-.row-picked:hover td { background: #f3e8ff !important; }
+/* 픽한 행: 배경색 변경 없음 (RDA 컬러 가독성 유지) */
 
 /* Checkbox sticky column */
 .nt-sticky-check {
