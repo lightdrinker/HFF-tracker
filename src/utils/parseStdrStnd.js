@@ -16,14 +16,16 @@ function normalize(name) {
 }
 
 function findNutrient(name) {
-  const norm = normalize(name)
+  // 전처리: "함량", "최종제품 -" 등 불필요한 접미사/접두사 제거
+  const cleaned = name.replace(/\s*함량\s*$/, '').replace(/^최종제품\s*-?\s*/, '').trim()
+  const norm = normalize(cleaned)
   // 1차: 정확 매칭
   const exact = NUTRIENT_COLUMNS.find(n =>
     n.aliases.some(a => normalize(a) === norm)
   )
   if (exact) return exact
   // 2차: 괄호 안 내용 제거 후 매칭 (예: "셀레늄(셀렌)" → "셀레늄")
-  const withoutParen = normalize(name.replace(/\([^)]*\)/g, ''))
+  const withoutParen = normalize(cleaned.replace(/\([^)]*\)/g, ''))
   if (withoutParen !== norm) {
     const found = NUTRIENT_COLUMNS.find(n =>
       n.aliases.some(a => normalize(a) === withoutParen)
@@ -31,7 +33,7 @@ function findNutrient(name) {
     if (found) return found
   }
   // 3차: 괄호 안 내용으로 매칭 (예: "셀렌(셀레늄)" → "셀레늄")
-  const parenMatch = name.match(/\(([^)]+)\)/)
+  const parenMatch = cleaned.match(/\(([^)]+)\)/)
   if (parenMatch) {
     const inside = normalize(parenMatch[1].replace(/또는\s*/g, ''))
     const found = NUTRIENT_COLUMNS.find(n =>
