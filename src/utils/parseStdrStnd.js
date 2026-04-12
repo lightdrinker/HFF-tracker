@@ -45,8 +45,8 @@ export function parseStdrStnd(text) {
     if (/^\[.*–.*\]$/.test(line)) continue // 섹션 헤더 스킵 (예: [칼슘, 마그네슘 – 정제])
     if (shouldSkip(line)) continue
 
-    // 번호 접두사 제거: "2) ", "(2) ", "(2)", "② " 등
-    const cleaned = line.replace(/^(?:\(?\d+\)?\s*|\d+\)\s*|[①-㉕]\s*)/, '')
+    // 번호 접두사 제거: "2) ", "(2) ", "(2)", "② ", "4. ", "4." 등
+    const cleaned = line.replace(/^(?:\d+\.\s*|\(?\d+\)?\s*|\d+\)\s*|[①-㉕]\s*)/, '')
     if (/^성상\s*:/.test(cleaned)) continue // 성상 라인 스킵
 
     // "성분명 : 표시량(숫자 단위/...)의 ..." 패턴
