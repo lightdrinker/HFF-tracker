@@ -630,6 +630,22 @@ body {
 }
 .pick-clear-all:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
 
+/* Pick all search results button */
+.btn-pick-all-search {
+  padding: 3px 12px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-pick-all-search:hover:not(:disabled) { background: #6d28d9; }
+.btn-pick-all-search:disabled { background: #c4b5fd; cursor: not-allowed; }
+
 /* 픽한 행: 배경색 변경 없음 (RDA 컬러 가독성 유지) */
 
 /* Checkbox sticky column */
