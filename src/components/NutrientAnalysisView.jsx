@@ -85,6 +85,10 @@ export default function NutrientAnalysisView({ tab }) {
   const [fncltyDropdownOpen, setFncltyDropdownOpen] = useState(false)
   const [nutrientDropdownOpen, setNutrientDropdownOpen] = useState(false)
 
+  // Pick all search results
+  const [pickingAll, setPickingAll] = useState(false)
+  const [pickAllProgress, setPickAllProgress] = useState({ current: 0, total: 0 })
+
   // Excel export
   const [exporting, setExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 })
@@ -307,6 +311,25 @@ export default function NutrientAnalysisView({ tab }) {
     setViewMode('search')
   }
 
+  // Fetch all search results and add to picks
+  async function pickAllSearch() {
+    setPickingAll(true)
+    setPickAllProgress({ current: 0, total: 0 })
+    const ff = serverFilter.value ? serverFilter.field : undefined
+    const fv = serverFilter.value || undefined
+    const items = await fetchAllForExport(
+      'C003',
+      (current, total) => setPickAllProgress({ current, total }),
+      ff, fv
+    )
+    setPickedItems(prev => {
+      const next = new Map(prev)
+      items.forEach(row => next.set(rowKey(row), row))
+      return next
+    })
+    setPickingAll(false)
+  }
+
   function toggleFilter(setArr, val) {
     setArr(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val])
   }
@@ -413,9 +436,22 @@ export default function NutrientAnalysisView({ tab }) {
           )}
         </span>
         {appliedFilter.value && viewMode === 'search' && (
-          <span className="filter-badge">
-            {tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label}: &quot;{appliedFilter.value}&quot;
-          </span>
+          <>
+            <span className="filter-badge">
+              {tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label}: &quot;{appliedFilter.value}&quot;
+            </span>
+            <button
+              className="btn-pick-all-search"
+              onClick={pickAllSearch}
+              disabled={pickingAll}
+              title="검색 결과 전체를 픽 목록에 추가"
+            >
+              {pickingAll
+                ? `추가 중... ${pickAllProgress.current}/${pickAllProgress.total}`
+                : `+ 전체 픽 (${totalCount.toLocaleString()}건)`
+              }
+            </button>
+          </>
         )}
 
         {/* View mode toggle */}
