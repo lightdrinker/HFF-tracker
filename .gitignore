@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
+
+# I0030 보강 데이터: 빌드 시 scripts/syncI0030.js 가 자동 생성
+public/data/i0030.json

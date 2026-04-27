@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   const API_KEY = process.env.VITE_API_KEY
   const { endpoint, startIdx = 1, endIdx = 100, filterField, filterValue } = req.query
 
-  const ALLOWED = ['C003', 'I2710', 'I-0040', 'I-0050']
+  const ALLOWED = ['C003', 'I0030', 'I2710', 'I-0040', 'I-0050']
   if (!ALLOWED.includes(endpoint)) {
     return res.status(400).json({ error: 'Invalid endpoint' })
   }

@@ -1,3 +1,5 @@
+import { mergeRows, preload as preloadI0030 } from './i0030Store'
+
 const PAGE_SIZE = 100
 
 function buildUrl(endpoint, startIdx, endIdx, filterField, filterValue) {
@@ -15,6 +17,12 @@ function extractData(data, endpoint) {
   return null
 }
 
+// C003 결과에 I0030 필드 보강 필요한지 (다른 endpoint는 그대로 통과)
+const NEEDS_I0030_MERGE = ['C003']
+
+// 앱 시작 시 미리 로드
+preloadI0030()
+
 // Fetch a single page for display (server-side pagination)
 export async function fetchPage(endpoint, page = 1, pageSize = 20, filterField, filterValue) {
   const startIdx = (page - 1) * pageSize + 1
@@ -26,8 +34,13 @@ export async function fetchPage(endpoint, page = 1, pageSize = 20, filterField, 
 
   if (!data || !data.row) return { items: [], totalCount: 0 }
 
+  let items = data.row
+  if (NEEDS_I0030_MERGE.includes(endpoint)) {
+    items = await mergeRows(items)
+  }
+
   return {
-    items: data.row,
+    items,
     totalCount: parseInt(data.total_count) || 0,
   }
 }
@@ -53,6 +66,10 @@ export async function fetchAllForExport(endpoint, onProgress, filterField, filte
     if (onProgress) onProgress(allItems.length, totalCount)
     if (allItems.length >= totalCount) break
     startIdx += PAGE_SIZE
+  }
+
+  if (NEEDS_I0030_MERGE.includes(endpoint)) {
+    allItems = await mergeRows(allItems)
   }
 
   return allItems

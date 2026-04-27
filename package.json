@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync-i0030": "node scripts/syncI0030.js",
+    "prebuild": "node scripts/syncI0030.js",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
