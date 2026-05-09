@@ -43,8 +43,11 @@ export default function TabView({ tab }) {
   const [localSearch, setLocalSearch] = useState('')
   const [period, setPeriod] = useState('all')
 
-  // 결과 내 검색 (server-filter 탭 전용): 1차 검색의 select 필드를 그대로 사용
+  // 결과 내 검색 (server-filter 탭 전용)
   const [secondarySearch, setSecondarySearch] = useState('')
+  const [secondarySearchField, setSecondarySearchField] = useState(
+    tab.secondarySearchFields?.[0]?.key || tab.serverFilterFields?.[0]?.key || ''
+  )
   const [fullData, setFullData] = useState(null)
   const [fullFetching, setFullFetching] = useState(false)
   const [fullFetchProgress, setFullFetchProgress] = useState({ current: 0, total: 0 })
@@ -69,6 +72,7 @@ export default function TabView({ tab }) {
     setPeriod('all')
     setExporting(false)
     setSecondarySearch('')
+    setSecondarySearchField(tab.secondarySearchFields?.[0]?.key || tab.serverFilterFields?.[0]?.key || '')
     setFullData(null)
     fullFetchFilterRef.current = null
   }, [tab.id])
@@ -188,12 +192,12 @@ export default function TabView({ tab }) {
   const filteredFull = useMemo(() => {
     if (!isFullMode || !fullData) return []
     let items = fullData
-    if (secondarySearch.trim() && appliedFilter.field) {
+    if (secondarySearch.trim() && secondarySearchField) {
       const q = secondarySearch.trim().toLowerCase()
-      items = items.filter(r => (r[appliedFilter.field] || '').toLowerCase().includes(q))
+      items = items.filter(r => (r[secondarySearchField] || '').toLowerCase().includes(q))
     }
     return items
-  }, [fullData, isFullMode, secondarySearch, appliedFilter])
+  }, [fullData, isFullMode, secondarySearch, secondarySearchField])
 
   const useFullData = isServerFilter && isFullMode
   const fullPageData = useFullData
@@ -256,6 +260,7 @@ export default function TabView({ tab }) {
     setAppliedFilter({ field: serverFilterField, value: serverFilterValue })
     setPage(1)
     setSecondarySearch('')
+    setSecondarySearchField(serverFilterField)  // 결과 내 검색 기본 필드도 1차 필드와 동기화
     setFullData(null)
     fullFetchFilterRef.current = null
   }
@@ -346,10 +351,19 @@ export default function TabView({ tab }) {
       {isServerFilter && appliedFilter.value && (
         <div className="server-filter secondary-search-row">
           <span className="secondary-search-label">↳ 결과 내</span>
+          <select
+            value={secondarySearchField}
+            onChange={e => setSecondarySearchField(e.target.value)}
+            className="filter-select"
+          >
+            {(tab.secondarySearchFields || tab.serverFilterFields).map(f => (
+              <option key={f.key} value={f.key}>{f.label}</option>
+            ))}
+          </select>
           <input
             className="search-input"
             type="text"
-            placeholder={`${tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label || ''}에 포함된 단어로 더 좁히기 (부분 일치)`}
+            placeholder="포함된 단어로 더 좁히기 (부분 일치)"
             value={secondarySearch}
             onChange={e => setSecondarySearch(e.target.value)}
           />

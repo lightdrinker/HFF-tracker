@@ -86,8 +86,11 @@ export default function NutrientAnalysisView({ tab }) {
   const [filterNutrients, setFilterNutrients] = useState([])
   const [filterHasOthers, setFilterHasOthers] = useState(false)
 
-  // 결과 내 검색: 1차 검색 후 같은 필드(appliedFilter.field)로 부분 일치 필터
+  // 결과 내 검색: 필드 선택 가능 (제품명/업체명/원재료/기준규격/기능성/제형)
   const [secondarySearch, setSecondarySearch] = useState('')
+  const [secondarySearchField, setSecondarySearchField] = useState(
+    tab.secondarySearchFields?.[0]?.key || tab.serverFilterFields?.[0]?.key || ''
+  )
 
   // Filter dropdown open state
   const [shapeDropdownOpen, setShapeDropdownOpen] = useState(false)
@@ -239,12 +242,12 @@ export default function NutrientAnalysisView({ tab }) {
   // Apply client filters
   const filteredFull = useMemo(() => {
     if (!isFullMode || !fullDataMatchesFilter) return []
-    return applyClientFilters(parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field)
-  }, [parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, isFullMode, fullDataMatchesFilter, secondarySearch, appliedFilter.field])
+    return applyClientFilters(parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, secondarySearchField)
+  }, [parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, isFullMode, fullDataMatchesFilter, secondarySearch, secondarySearchField])
 
   const filteredPage = useMemo(() =>
-    applyClientFilters(parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field),
-    [parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field])
+    applyClientFilters(parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, secondarySearchField),
+    [parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, secondarySearchField])
 
   const filteredPicked = useMemo(() =>
     applyClientFilters(parsedPicked, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter),
@@ -285,6 +288,7 @@ export default function NutrientAnalysisView({ tab }) {
     setFullData(null)
     fullFetchFilterRef.current = null
     setSecondarySearch('')
+    setSecondarySearchField(serverFilterField)  // 결과 내 검색 필드도 1차와 동기화
     setViewMode('search')
   }
   function handleSearchKey(e) {
@@ -446,14 +450,23 @@ export default function NutrientAnalysisView({ tab }) {
         )}
       </div>
 
-      {/* 결과 내 검색 — 1차 검색이 적용된 search 모드에서만 표시. 1차 select 필드를 그대로 사용 */}
+      {/* 결과 내 검색 — 1차 검색이 적용된 search 모드에서만 표시. 필드 선택 가능 */}
       {appliedFilter.value && viewMode === 'search' && (
         <div className="server-filter secondary-search-row">
           <span className="secondary-search-label">↳ 결과 내</span>
+          <select
+            value={secondarySearchField}
+            onChange={e => setSecondarySearchField(e.target.value)}
+            className="filter-select"
+          >
+            {(tab.secondarySearchFields || tab.serverFilterFields).map(f => (
+              <option key={f.key} value={f.key}>{f.label}</option>
+            ))}
+          </select>
           <input
             className="search-input"
             type="text"
-            placeholder={`${tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label || ''}에 포함된 단어로 더 좁히기 (부분 일치)`}
+            placeholder="포함된 단어로 더 좁히기 (부분 일치)"
             value={secondarySearch}
             onChange={e => setSecondarySearch(e.target.value)}
           />
