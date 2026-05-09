@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { fetchPage, fetchAllForExport } from '../api/fetchAll'
 import { filterByPeriod, filterBySearch, isNew } from '../utils/filter'
 import { exportToExcel } from '../utils/excel'
 
 const PAGE_SIZE = 20
+const AUTO_FETCH_THRESHOLD = 1000  // 결과 내 검색용: 이 건수 이하면 1차 검색 후 자동 전체 fetch
 
 const PERIOD_OPTIONS = [
   { value: 'all', label: '전체' },
@@ -42,6 +43,13 @@ export default function TabView({ tab }) {
   const [localSearch, setLocalSearch] = useState('')
   const [period, setPeriod] = useState('all')
 
+  // 결과 내 검색 (server-filter 탭 전용): 1차 검색의 select 필드를 그대로 사용
+  const [secondarySearch, setSecondarySearch] = useState('')
+  const [fullData, setFullData] = useState(null)
+  const [fullFetching, setFullFetching] = useState(false)
+  const [fullFetchProgress, setFullFetchProgress] = useState({ current: 0, total: 0 })
+  const fullFetchFilterRef = useRef(null)
+
   // Excel export
   const [exporting, setExporting] = useState(false)
   const [exportProgress, setExportProgress] = useState({ current: 0, total: 0 })
@@ -60,6 +68,9 @@ export default function TabView({ tab }) {
     setLocalSearch('')
     setPeriod('all')
     setExporting(false)
+    setSecondarySearch('')
+    setFullData(null)
+    fullFetchFilterRef.current = null
   }, [tab.id])
 
   // Column objects for active/inactive
@@ -93,6 +104,62 @@ export default function TabView({ tab }) {
     }
   }, [page, appliedFilter, isServerFilter, loadPage])
 
+  // === 결과 내 검색용 자동 전체 fetch (server-filter 탭) ===
+  // 1차 검색 후 totalCount 가 작으면 자동, 또는 결과 내 검색 시작 시 트리거
+  const fullDataMatchesFilter = isServerFilter
+    && fullFetchFilterRef.current !== null
+    && fullFetchFilterRef.current.field === appliedFilter.field
+    && fullFetchFilterRef.current.value === appliedFilter.value
+  const isFullMode = fullData !== null && !fullFetching && fullDataMatchesFilter
+
+  const doFullFetch = useCallback(async () => {
+    setFullFetching(true)
+    setFullFetchProgress({ current: 0, total: 0 })
+    const ff = appliedFilter.value ? appliedFilter.field : undefined
+    const fv = appliedFilter.value || undefined
+    const items = await fetchAllForExport(
+      tab.id,
+      (current, total) => setFullFetchProgress({ current, total }),
+      ff, fv
+    )
+    fullFetchFilterRef.current = { field: appliedFilter.field, value: appliedFilter.value }
+    setFullData(items)
+    setFullFetching(false)
+  }, [tab.id, appliedFilter])
+
+  // 1차 검색 결과 1000건 이하 + 검색 적용된 상태면 자동 fullFetch
+  useEffect(() => {
+    if (!isServerFilter) return
+    if (!appliedFilter.value) return
+    if (fullFetching) return
+    if (isFullMode) return
+    if (totalCount > 0 && totalCount <= AUTO_FETCH_THRESHOLD) {
+      doFullFetch()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalCount, appliedFilter, isServerFilter])
+
+  // 결과 내 검색 시작 시 (1000건 초과여도) 자동 fullFetch
+  useEffect(() => {
+    if (!isServerFilter) return
+    if (!secondarySearch.trim()) return
+    if (!appliedFilter.value) return
+    if (fullFetching) return
+    if (isFullMode) return
+    doFullFetch()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondarySearch, appliedFilter, isServerFilter])
+
+  // 1차 검색 변경 시 fullData 무효화
+  useEffect(() => {
+    if (fullFetchFilterRef.current
+      && (fullFetchFilterRef.current.field !== appliedFilter.field
+        || fullFetchFilterRef.current.value !== appliedFilter.value)) {
+      setFullData(null)
+      fullFetchFilterRef.current = null
+    }
+  }, [appliedFilter])
+
   // === Small-data tabs: auto-load all at once ===
   useEffect(() => {
     if (!isServerFilter && !allLoaded) {
@@ -117,12 +184,30 @@ export default function TabView({ tab }) {
   const smallTotalPages = Math.ceil(filteredSmallData.length / PAGE_SIZE)
   const smallPageData = filteredSmallData.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  // === Server-filter 결과에 결과 내 검색 적용 (fullData 있을 때) ===
+  const filteredFull = useMemo(() => {
+    if (!isFullMode || !fullData) return []
+    let items = fullData
+    if (secondarySearch.trim() && appliedFilter.field) {
+      const q = secondarySearch.trim().toLowerCase()
+      items = items.filter(r => (r[appliedFilter.field] || '').toLowerCase().includes(q))
+    }
+    return items
+  }, [fullData, isFullMode, secondarySearch, appliedFilter])
+
+  const useFullData = isServerFilter && isFullMode
+  const fullPageData = useFullData
+    ? filteredFull.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    : []
+
   // === Which data to show in table ===
-  const displayData = isServerFilter ? pageData : smallPageData
-  const displayTotal = isServerFilter ? totalCount : filteredSmallData.length
-  const totalPages = isServerFilter
-    ? Math.ceil(totalCount / PAGE_SIZE)
-    : smallTotalPages
+  const displayData = useFullData ? fullPageData : (isServerFilter ? pageData : smallPageData)
+  const displayTotal = useFullData ? filteredFull.length : (isServerFilter ? totalCount : filteredSmallData.length)
+  const totalPages = useFullData
+    ? Math.ceil(filteredFull.length / PAGE_SIZE)
+    : isServerFilter
+      ? Math.ceil(totalCount / PAGE_SIZE)
+      : smallTotalPages
 
   // === NEW count ===
   const newCount = useMemo(() => {
@@ -170,6 +255,9 @@ export default function TabView({ tab }) {
   function handleServerSearch() {
     setAppliedFilter({ field: serverFilterField, value: serverFilterValue })
     setPage(1)
+    setSecondarySearch('')
+    setFullData(null)
+    fullFetchFilterRef.current = null
   }
 
   function handleServerSearchKey(e) {
@@ -180,7 +268,13 @@ export default function TabView({ tab }) {
     setServerFilterValue('')
     setAppliedFilter({ field: '', value: '' })
     setPage(1)
+    setSecondarySearch('')
+    setFullData(null)
+    fullFetchFilterRef.current = null
   }
+
+  // 결과 내 검색이나 fullData 전환 시 페이지 1로 리셋
+  useEffect(() => { setPage(1) }, [secondarySearch, isFullMode])
 
   async function handleExport() {
     setExporting(true)
@@ -244,6 +338,28 @@ export default function TabView({ tab }) {
             <button className="btn-secondary" onClick={handleServerClear}>
               초기화
             </button>
+          )}
+        </div>
+      )}
+
+      {/* 결과 내 검색 (server-filter 탭 전용) — 1차 검색 적용된 상태에서만 표시 */}
+      {isServerFilter && appliedFilter.value && (
+        <div className="server-filter secondary-search-row">
+          <span className="secondary-search-label">↳ 결과 내</span>
+          <input
+            className="search-input"
+            type="text"
+            placeholder={`${tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label || ''}에 포함된 단어로 더 좁히기 (부분 일치)`}
+            value={secondarySearch}
+            onChange={e => setSecondarySearch(e.target.value)}
+          />
+          {secondarySearch && (
+            <button className="btn-secondary" onClick={() => setSecondarySearch('')}>✕</button>
+          )}
+          {fullFetching && (
+            <span className="secondary-search-hint">
+              전체 데이터 불러오는 중... {fullFetchProgress.current.toLocaleString()}/{fullFetchProgress.total.toLocaleString()}
+            </span>
           )}
         </div>
       )}

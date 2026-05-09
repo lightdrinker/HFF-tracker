@@ -27,7 +27,7 @@ function pickServerFilter(appliedFilter, filterFnclty, filterShape) {
 }
 
 // Apply client-side filters to parsed rows
-function applyClientFilters(rows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter) {
+function applyClientFilters(rows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, secondaryField) {
   let result = rows
   // Only apply client-side if not already handled by server
   const shapeFilters = serverFilter.field === 'PRDT_SHAP_CD_NM' && filterShape.length === 1
@@ -46,6 +46,12 @@ function applyClientFilters(rows, filterShape, filterFnclty, filterNutrients, fi
   }
   if (filterHasOthers) {
     result = result.filter(r => r.others.length > 0)
+  }
+  if (secondarySearch && secondaryField) {
+    const q = secondarySearch.trim().toLowerCase()
+    if (q) {
+      result = result.filter(r => (r._raw?.[secondaryField] || '').toLowerCase().includes(q))
+    }
   }
   return result
 }
@@ -79,6 +85,9 @@ export default function NutrientAnalysisView({ tab }) {
   const [filterFnclty, setFilterFnclty] = useState([])
   const [filterNutrients, setFilterNutrients] = useState([])
   const [filterHasOthers, setFilterHasOthers] = useState(false)
+
+  // 결과 내 검색: 1차 검색 후 같은 필드(appliedFilter.field)로 부분 일치 필터
+  const [secondarySearch, setSecondarySearch] = useState('')
 
   // Filter dropdown open state
   const [shapeDropdownOpen, setShapeDropdownOpen] = useState(false)
@@ -150,6 +159,16 @@ export default function NutrientAnalysisView({ tab }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalCount, hasActiveFilters, serverFilter])
 
+  // 결과 내 검색을 시작하면 (1000건 초과여도) 전체 데이터를 자동 로드해서 정확한 필터링 제공
+  useEffect(() => {
+    if (!secondarySearch.trim()) return
+    if (!appliedFilter.value) return
+    if (fullFetching) return
+    if (isFullMode && fullDataMatchesFilter) return
+    doFullFetch()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondarySearch, appliedFilter])
+
   // Reset full data when server filter changes
   useEffect(() => {
     if (fullFetchFilterRef.current
@@ -220,12 +239,12 @@ export default function NutrientAnalysisView({ tab }) {
   // Apply client filters
   const filteredFull = useMemo(() => {
     if (!isFullMode || !fullDataMatchesFilter) return []
-    return applyClientFilters(parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter)
-  }, [parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, isFullMode, fullDataMatchesFilter])
+    return applyClientFilters(parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field)
+  }, [parsedFullRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, isFullMode, fullDataMatchesFilter, secondarySearch, appliedFilter.field])
 
   const filteredPage = useMemo(() =>
-    applyClientFilters(parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter),
-    [parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter])
+    applyClientFilters(parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field),
+    [parsedPageRows, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter, secondarySearch, appliedFilter.field])
 
   const filteredPicked = useMemo(() =>
     applyClientFilters(parsedPicked, filterShape, filterFnclty, filterNutrients, filterHasOthers, serverFilter),
@@ -265,6 +284,7 @@ export default function NutrientAnalysisView({ tab }) {
     setFullPage(1)
     setFullData(null)
     fullFetchFilterRef.current = null
+    setSecondarySearch('')
     setViewMode('search')
   }
   function handleSearchKey(e) {
@@ -277,6 +297,7 @@ export default function NutrientAnalysisView({ tab }) {
     setFilterFnclty([])
     setFilterNutrients([])
     setFilterHasOthers(false)
+    setSecondarySearch('')
     setPage(1)
     setFullPage(1)
     setFullData(null)
@@ -424,6 +445,26 @@ export default function NutrientAnalysisView({ tab }) {
           <button className="btn-secondary" onClick={handleClear}>초기화</button>
         )}
       </div>
+
+      {/* 결과 내 검색 — 1차 검색이 적용된 search 모드에서만 표시. 1차 select 필드를 그대로 사용 */}
+      {appliedFilter.value && viewMode === 'search' && (
+        <div className="server-filter secondary-search-row">
+          <span className="secondary-search-label">↳ 결과 내</span>
+          <input
+            className="search-input"
+            type="text"
+            placeholder={`${tab.serverFilterFields.find(f => f.key === appliedFilter.field)?.label || ''}에 포함된 단어로 더 좁히기 (부분 일치)`}
+            value={secondarySearch}
+            onChange={e => setSecondarySearch(e.target.value)}
+          />
+          {secondarySearch && (
+            <button className="btn-secondary" onClick={() => setSecondarySearch('')}>✕</button>
+          )}
+          {secondarySearch && totalCount > AUTO_FETCH_THRESHOLD && !useFullData && fullFetching && (
+            <span className="secondary-search-hint">전체 데이터 불러오는 중...</span>
+          )}
+        </div>
+      )}
 
       {/* Stats + View Toggle */}
       <div className="stats-bar">

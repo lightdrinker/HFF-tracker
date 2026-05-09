@@ -155,6 +155,32 @@ body {
   font-weight: 500;
 }
 
+/* 결과 내 검색 (secondary search) */
+.secondary-search-row {
+  margin-top: -8px;
+  margin-bottom: 16px;
+  padding-left: 24px;
+}
+.secondary-search-label {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.secondary-search-row .search-input {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.secondary-search-row .search-input:focus {
+  background: white;
+  border-color: #2563eb;
+}
+.secondary-search-hint {
+  color: #64748b;
+  font-size: 12px;
+  font-style: italic;
+}
+
 /* Progress bar */
 .progress-bar {
   width: 100%;
