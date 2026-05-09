@@ -12,12 +12,12 @@ import { NUTRIENT_COLUMNS } from '../config/nutrients'
 //   H: "비타민D : 표시량의 80~180% (표시량 : 75 ㎍ / 150 mg)"
 
 function normalize(name) {
-  return name.replace(/\s+/g, '').trim()
+  return name.replace(/\s+/g, '').trim().toLowerCase()
 }
 
 function findNutrient(name) {
-  // 전처리: "함량", "최종제품 -" 등 불필요한 접미사/접두사 제거
-  const cleaned = name.replace(/\s*함량\s*$/, '').replace(/^최종제품\s*-?\s*/, '').trim()
+  // 전처리: "함량", "함량(%)", "최종제품 -" 등 불필요한 접미사/접두사 제거
+  const cleaned = name.replace(/\s*함량.*$/, '').replace(/^최종제품\s*-?\s*/, '').trim()
   const norm = normalize(cleaned)
   // 1차: 정확 매칭
   const exact = NUTRIENT_COLUMNS.find(n =>
@@ -44,10 +44,11 @@ function findNutrient(name) {
   return null
 }
 
-// 불필요한 라인 판별 (성상, 대장균, 납, 붕해 등)
+// 불필요한 라인 판별 (성상, 대장균, 납, 붕해, 잔류용매 등)
 const SKIP_PATTERNS = [
-  /성\s*상/, /대장균/, /붕해/, /납/, /카드뮴/, /수은/, /비소/,
-  /세균수/, /진균수/, /총균수/, /살모넬라/,
+  /성\s*상/, /대장\s*균/, /붕\s*해/, /납/, /카드뮴/, /수은/, /비소/,
+  /세\s*균\s*수/, /진\s*균\s*수/, /총\s*균\s*수/, /살모넬라/,
+  /잔류용매/, /헥산/, /초산에틸/, /아세톤/, /이소프로필/,
 ]
 
 function shouldSkip(line) {
@@ -93,15 +94,19 @@ export function parseStdrStnd(text) {
     if (/^\[.*[–\-].*\]$/.test(line)) continue
     if (shouldSkip(line)) continue
 
-    // 번호 접두사 제거: "2) ", "(2) ", "4. ", "② ", "⑸ " 등
-    const cleaned = line.replace(/^(?:\d+\.\s*|\(?\d+\)?\s*|\d+\)\s*|[①-⑳⑴-⒇]\s*)/, '')
+    // 번호/대시/마커 접두사 제거: "2) ", "(2) ", "4. ", "② ", "㉑ ", "⑸ ", "- ", "■ ", ": ", "-2) " 등
+    // 여러 접두사가 겹쳐 있을 수 있어 더 줄지 않을 때까지 반복 적용
+    const stripRe = /^(?:\d+\.\s*|\(?\d+\)?\s*|\d+\)\s*|[①-⑳㉑-㉟⑴-⒇]\s*|-\s*|■\s*|:\s*|\.\s*|,\s*|\?\s*|[ㆍ⦁・·]\s*)/
+    let cleaned = line
+    let prev
+    do { prev = cleaned; cleaned = cleaned.replace(stripRe, '') } while (cleaned !== prev)
     if (/^성\s*상\s*:/.test(cleaned)) continue
 
     let matched = false
 
     // 패턴 A: "성분명 : 표시량(숫자 단위/...)의 ..."
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s*:\s*표시량\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/);
+      const m = cleaned.match(/(.+?)\s*:\s*표시[량랑]\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/);
       if (m) {
         const name = m[1].replace(/최종제품\s*-?\s*/, '').trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
@@ -115,7 +120,7 @@ export function parseStdrStnd(text) {
 
     // 패턴 C: "성분명 : (표시량: 숫자단위/...)의 ..."
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s*:\s*\(표시량\s*:\s*([\d,\.]+)\s*([^\/\)]*)/);
+      const m = cleaned.match(/(.+?)\s*:\s*\(\s*표시[량랑]\s*:\s*([\d,\.]+)\s*([^\/\)]*)/);
       if (m) {
         const name = m[1].trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
@@ -129,7 +134,7 @@ export function parseStdrStnd(text) {
 
     // 패턴 D/H: "성분명: 표시량의 80~150%(표시량 692μg RE/3,000 mg)" 또는 "... (표시량 : 75 ㎍ / 150 mg)"
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s*:\s*.*표시량의\s*[\d\s~～\-%]+.*\(표시량\s*:?\s*([\d,\.]+)\s*([^\/\)]*)/);
+      const m = cleaned.match(/(.+?)\s*:\s*.*표시[량랑]의\s*[\d\s~～\-%]+.*\(\s*표시[량랑]\s*:?\s*([\d,\.]+)\s*([^\/\)]*)/);
       if (m) {
         const name = m[1].replace(/최종제품\s*-?\s*/, '').trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
@@ -143,7 +148,7 @@ export function parseStdrStnd(text) {
 
     // 패턴 E: "성분명: 표시량 숫자단위/전체의 ..."  (괄호 없음)
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s*:\s*표시량\s+([\d,\.]+)\s*([^\/\s]*)/);
+      const m = cleaned.match(/(.+?)\s*:\s*표시[량랑]\s+([\d,\.]+)\s*([^\/\s]*)/);
       if (m) {
         const name = m[1].trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
@@ -157,7 +162,7 @@ export function parseStdrStnd(text) {
 
     // 패턴 G: "성분명(표시량 숫자단위/...) : ..."
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s*\(\s*표시량\s*([\d,\.]+)\s*([^\/\)]*)/);
+      const m = cleaned.match(/(.+?)\s*\(\s*표시[량랑]\s*:?\s*([\d,\.]+)\s*([^\/\)]*)/);
       if (m) {
         const name = m[1].trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
@@ -171,7 +176,7 @@ export function parseStdrStnd(text) {
 
     // 패턴 F: "성분명 표시량(숫자단위/...)의 ..." (콜론 없음)
     if (!matched) {
-      const m = cleaned.match(/(.+?)\s+표시량\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/);
+      const m = cleaned.match(/(.+?)\s+표시[량랑]\s*\(\s*([\d,\.]+)\s*([^\/\)]*)/);
       if (m) {
         const name = m[1].trim()
         const amount = parseFloat(m[2].replace(/,/g, ''))
