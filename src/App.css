@@ -10,7 +10,7 @@ body {
 .app {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 0 20px 60px;
 }
 
 /* Header */
@@ -841,12 +841,18 @@ body {
 
 /* ===== Footer ===== */
 .app-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px 0 24px;
-  margin-top: 32px;
+  padding: 10px 24px;
+  background: white;
   border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
   flex-wrap: wrap;
 }
 .footer-copy {
