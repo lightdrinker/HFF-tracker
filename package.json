@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "sync-i0030": "node scripts/syncI0030.js",
-    "prebuild": "node scripts/syncI0030.js",
+    "update-hff-cache": "node scripts/update-hff-cache.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

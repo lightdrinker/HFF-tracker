@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  const API_KEY = process.env.VITE_API_KEY
+  const API_KEY = process.env.HFF_API_KEY || process.env.VITE_API_KEY
   const { endpoint, startIdx = 1, endIdx = 100, filterField, filterValue } = req.query
 
   const ALLOWED = ['C003', 'I0030', 'I2710', 'I-0040', 'I-0050']

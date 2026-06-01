@@ -1,5 +1,7 @@
 import { NUTRIENT_COLUMNS } from '../config/nutrients'
 
+/* eslint-disable no-useless-escape */
+
 // STDR_STND 필드에서 성분명과 함량을 추출
 // 지원 포맷:
 //   A: "비타민A : 표시량(700 μg RAE/3,210 mg)의 80~150%"
@@ -56,12 +58,6 @@ function shouldSkip(line) {
 }
 
 // 숫자+단위에서 숫자만 추출
-function extractAmount(str) {
-  const m = str.match(/([\d,\.]+)/)
-  if (!m) return NaN
-  return parseFloat(m[1].replace(/,/g, ''))
-}
-
 function addResult(result, name, amount) {
   if (isNaN(amount)) return false
   const nutrient = findNutrient(name)

@@ -61,7 +61,9 @@ export default function NutrientAnalysisView({ tab }) {
   const [pageData, setPageData] = useState([])
   const [totalCount, setTotalCount] = useState(0)
   const [page, setPage] = useState(1)
+  const [fullPage, setFullPage] = useState(1)
   const [loading, setLoading] = useState(false)
+  const FULL_PAGE_SIZE = 50
 
   // Full fetch mode data
   const [fullData, setFullData] = useState(null) // null = not fetched, [] = fetched
@@ -118,6 +120,18 @@ export default function NutrientAnalysisView({ tab }) {
     [appliedFilter, filterFnclty, filterShape]
   )
 
+  useEffect(() => {
+    const value = serverFilterValue.trim()
+    setAppliedFilter(value ? { field: serverFilterField, value } : { field: '', value: '' })
+    setPage(1)
+    setFullPage(1)
+    setFullData(null)
+    fullFetchFilterRef.current = null
+    setSecondarySearch('')
+    setSecondarySearchField(serverFilterField)
+    setViewMode('search')
+  }, [serverFilterField, serverFilterValue])
+
   const hasActiveFilters = filterShape.length > 0 || filterFnclty.length > 0
     || filterNutrients.length > 0 || filterHasOthers
 
@@ -151,14 +165,12 @@ export default function NutrientAnalysisView({ tab }) {
     loadPage(page, serverFilter)
   }, [page, serverFilter, loadPage, isFullMode, fullDataMatchesFilter])
 
-  // Auto full-fetch when totalCount <= threshold and filters active
+  // Auto full-fetch from the static cache when client-side filters are active.
   useEffect(() => {
     if (!hasActiveFilters) return
     if (fullFetching) return
     if (isFullMode && fullDataMatchesFilter) return
-    if (totalCount > 0 && totalCount <= AUTO_FETCH_THRESHOLD) {
-      doFullFetch()
-    }
+    doFullFetch()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalCount, hasActiveFilters, serverFilter])
 
@@ -263,9 +275,6 @@ export default function NutrientAnalysisView({ tab }) {
     ? filteredPicked.length
     : useFullData ? filteredFull.length : totalCount
 
-  // Pagination for full mode
-  const [fullPage, setFullPage] = useState(1)
-  const FULL_PAGE_SIZE = 50
   const fullTotalPages = Math.ceil(displayRows.length / FULL_PAGE_SIZE)
 
   // Reset fullPage when filters change

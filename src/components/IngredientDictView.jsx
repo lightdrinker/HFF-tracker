@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { loadAllIngredients } from '../utils/mergeIngredients'
 import { INGREDIENT_COLUMNS, TYPE_OPTIONS } from '../config/ingredientColumns'
 import { exportToExcel } from '../utils/excel'
@@ -25,7 +25,6 @@ export default function IngredientDictView({ tab }) {
 
   // Load all 3 APIs on mount
   useEffect(() => {
-    setLoading(true)
     loadAllIngredients((msg) => setLoadMsg(msg))
       .then(data => {
         setAllData(data)

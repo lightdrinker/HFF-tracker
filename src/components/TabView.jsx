@@ -77,6 +77,18 @@ export default function TabView({ tab }) {
     fullFetchFilterRef.current = null
   }, [tab.id])
 
+  useEffect(() => {
+    if (!isServerFilter) return
+
+    const value = serverFilterValue.trim()
+    setAppliedFilter(value ? { field: serverFilterField, value } : { field: '', value: '' })
+    setPage(1)
+    setSecondarySearch('')
+    setSecondarySearchField(serverFilterField)
+    setFullData(null)
+    fullFetchFilterRef.current = null
+  }, [isServerFilter, serverFilterField, serverFilterValue])
+
   // Column objects for active/inactive
   const activeColumns = useMemo(() =>
     activeKeys.map(key => tab.columns.find(c => c.key === key)).filter(Boolean),
@@ -293,6 +305,11 @@ export default function TabView({ tab }) {
       (current, total) => setExportProgress({ current, total }),
       ff, fv
     )
+
+    if (isServerFilter && secondarySearch.trim() && secondarySearchField) {
+      const q = secondarySearch.trim().toLowerCase()
+      items = items.filter(r => (r[secondarySearchField] || '').toLowerCase().includes(q))
+    }
 
     // Apply local filters for small-data tabs
     if (!isServerFilter) {
