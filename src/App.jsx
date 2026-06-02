@@ -5,11 +5,13 @@ import NutrientAnalysisView from './components/NutrientAnalysisView'
 import IngredientDictView from './components/IngredientDictView'
 import { subscribeCacheStatus } from './api/hffCache'
 import { formatCacheDate } from './utils/cacheInfo'
+import BugReportModal from './components/BugReportModal'
 import './App.css'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(TABS[0].id)
   const [cacheStatus, setCacheStatus] = useState({ state: 'idle', meta: null, progress: null, error: null })
+  const [bugModalOpen, setBugModalOpen] = useState(false)
   const tab = TABS.find(t => t.id === activeTab)
 
   useEffect(() => subscribeCacheStatus(setCacheStatus), [])
@@ -74,6 +76,21 @@ export default function App() {
       <main className="main">
         {renderTab()}
       </main>
+
+      <footer className="app-footer">
+        <span className="footer-copy">© 2026 <strong className="footer-name">Jun</strong></span>
+        <span className="footer-sep">·</span>
+        <a className="footer-email" href="mailto:lightdrinker@naver.com">
+          <span className="footer-email-icon">✉</span>
+          lightdrinker@naver.com
+        </a>
+        <span className="footer-sep">·</span>
+        <button className="footer-bug-btn" onClick={() => setBugModalOpen(true)}>
+          버그 리포트
+        </button>
+      </footer>
+
+      {bugModalOpen && <BugReportModal appName="HFF Tracker" onClose={() => setBugModalOpen(false)} />}
     </div>
   )
 }
