@@ -5,7 +5,7 @@ import { exportToExcel } from '../utils/excel'
 
 const PAGE_SIZE = 20
 
-export default function IngredientDictView({ tab }) {
+export default function IngredientDictView({ tab, cacheStatus }) {
   const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadMsg, setLoadMsg] = useState('원료 데이터 로딩 중...')
@@ -22,6 +22,9 @@ export default function IngredientDictView({ tab }) {
 
   // Column swap animation
   const [swapping, setSwapping] = useState(null)
+  const loadingText = cacheStatus?.state === 'loading' && cacheStatus.progress?.percent != null
+    ? `캐시 로드 중 ${cacheStatus.progress.percent}%`
+    : loadMsg
 
   // Load all 3 APIs on mount
   useEffect(() => {
@@ -134,7 +137,7 @@ export default function IngredientDictView({ tab }) {
       {/* Stats */}
       <div className="stats-bar">
         <span className="total-count">
-          {loading ? loadMsg : `총 ${filtered.length.toLocaleString()}건`}
+          {loading ? loadingText : `총 ${filtered.length.toLocaleString()}건`}
         </span>
       </div>
 
@@ -190,7 +193,7 @@ export default function IngredientDictView({ tab }) {
 
       {/* Table */}
       {loading ? (
-        <div className="empty-msg">{loadMsg}</div>
+        <div className="empty-msg">{loadingText}</div>
       ) : activeKeys.length === 0 ? (
         <div className="empty-msg">확정 컬럼을 1개 이상 선택해주세요</div>
       ) : (

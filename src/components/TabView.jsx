@@ -14,7 +14,7 @@ const PERIOD_OPTIONS = [
   { value: '1y', label: '1년' },
 ]
 
-export default function TabView({ tab }) {
+export default function TabView({ tab, cacheStatus }) {
   const isServerFilter = tab.useServerFilter
 
   // Active columns: which columns are "확정" (selected for display/export)
@@ -323,6 +323,9 @@ export default function TabView({ tab }) {
 
   // === Render ===
   const isReady = isServerFilter || allLoaded || loading
+  const loadingText = cacheStatus?.state === 'loading' && cacheStatus.progress?.percent != null
+    ? `캐시 로드 중 ${cacheStatus.progress.percent}%`
+    : '불러오는 중...'
 
   return (
     <div className="tab-view">
@@ -426,7 +429,7 @@ export default function TabView({ tab }) {
           {/* Stats bar */}
           <div className="stats-bar">
             <span className="total-count">
-              {loading ? '검색 중...' : `총 ${displayTotal.toLocaleString()}건`}
+              {loading ? loadingText : `총 ${displayTotal.toLocaleString()}건`}
             </span>
             {appliedFilter.value && (
               <span className="filter-badge">
@@ -515,7 +518,7 @@ export default function TabView({ tab }) {
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">불러오는 중...</td></tr>
+                    <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">{loadingText}</td></tr>
                   ) : displayData.length === 0 ? (
                     <tr><td colSpan={activeColumns.length + (tab.dateField ? 1 : 0)} className="loading-cell">검색 결과가 없습니다</td></tr>
                   ) : displayData.map((row, i) => (

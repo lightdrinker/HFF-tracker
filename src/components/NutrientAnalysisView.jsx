@@ -56,7 +56,7 @@ function applyClientFilters(rows, filterShape, filterFnclty, filterNutrients, fi
   return result
 }
 
-export default function NutrientAnalysisView({ tab }) {
+export default function NutrientAnalysisView({ tab, cacheStatus }) {
   // Page mode data
   const [pageData, setPageData] = useState([])
   const [totalCount, setTotalCount] = useState(0)
@@ -134,6 +134,9 @@ export default function NutrientAnalysisView({ tab }) {
 
   const hasActiveFilters = filterShape.length > 0 || filterFnclty.length > 0
     || filterNutrients.length > 0 || filterHasOthers
+  const loadingText = cacheStatus?.state === 'loading' && cacheStatus.progress?.percent != null
+    ? `캐시 로드 중 ${cacheStatus.progress.percent}%`
+    : '불러오는 중...'
 
   // Is full data mode active?
   const isFullMode = fullData !== null && !fullFetching
@@ -491,7 +494,7 @@ export default function NutrientAnalysisView({ tab }) {
       {/* Stats + View Toggle */}
       <div className="stats-bar">
         <span className="total-count">
-          {loading && !useFullData ? '검색 중...'
+          {loading && !useFullData ? loadingText
             : `총 ${displayTotalCount.toLocaleString()}건`
           }
           {!useFullData && hasActiveFilters && !fullFetching && viewMode === 'search' && (
@@ -729,7 +732,7 @@ export default function NutrientAnalysisView({ tab }) {
             {(loading || fullFetching) && viewMode === 'search' && !useFullData ? (
               <tr>
                 <td colSpan={NUTRIENT_COLUMNS.length + 4} className="loading-cell">
-                  불러오는 중...
+                  {loadingText}
                 </td>
               </tr>
             ) : pagedDisplayRows.length === 0 ? (

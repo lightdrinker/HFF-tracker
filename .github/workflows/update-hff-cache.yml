@@ -34,13 +34,13 @@ jobs:
 
       - name: Commit cache
         run: |
-          if [ -z "$(git status --short public/hff-cache.json)" ]; then
+          if [ -z "$(git status --short public/hff-cache*.json)" ]; then
             echo "No cache changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/hff-cache.json
+          git add public/hff-cache*.json
           git commit -m "chore: update HFF cache"
           git push

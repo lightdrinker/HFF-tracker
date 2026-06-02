@@ -15,6 +15,10 @@ body {
 
 /* Header */
 .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   padding: 24px 0 16px;
   border-bottom: 2px solid #e2e8f0;
   margin-bottom: 0;
@@ -29,6 +33,40 @@ body {
   font-size: 13px;
   color: #64748b;
   margin-top: 4px;
+}
+.cache-status {
+  min-width: 320px;
+  max-width: 520px;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.cache-status.ready {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+}
+.cache-status.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+.cache-progress {
+  height: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+.cache-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+  transition: width 0.15s ease;
 }
 
 /* Tabs */
