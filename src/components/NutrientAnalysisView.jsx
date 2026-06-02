@@ -3,6 +3,7 @@ import { fetchPage, fetchAllForExport } from '../api/fetchAll'
 import { parseStdrStnd } from '../utils/parseStdrStnd'
 import { NUTRIENT_COLUMNS, getRdaColor, getRdaTextColor } from '../config/nutrients'
 import { exportNutrientExcel } from '../utils/excelNutrient'
+import CacheInfoBar from './CacheInfoBar'
 
 const PAGE_SIZE = 20
 const AUTO_FETCH_THRESHOLD = 1000
@@ -436,6 +437,7 @@ export default function NutrientAnalysisView({ tab, cacheStatus }) {
           {tab.description.map((d, i) => <li key={i}>{d}</li>)}
         </ul>
       </div>
+      <CacheInfoBar cacheStatus={cacheStatus} endpoints={['C003']} />
 
       {/* Search */}
       <div className="server-filter">

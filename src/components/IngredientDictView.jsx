@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { loadAllIngredients } from '../utils/mergeIngredients'
 import { INGREDIENT_COLUMNS, TYPE_OPTIONS } from '../config/ingredientColumns'
 import { exportToExcel } from '../utils/excel'
+import CacheInfoBar from './CacheInfoBar'
 
 const PAGE_SIZE = 20
 
@@ -111,6 +112,7 @@ export default function IngredientDictView({ tab, cacheStatus }) {
           {tab.description.map((d, i) => <li key={i}>{d}</li>)}
         </ul>
       </div>
+      <CacheInfoBar cacheStatus={cacheStatus} endpoints={['I2710', 'I-0040', 'I-0050']} />
 
       {/* Type filter + search */}
       <div className="filter-row">

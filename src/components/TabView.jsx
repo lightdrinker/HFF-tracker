@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { fetchPage, fetchAllForExport } from '../api/fetchAll'
 import { filterByPeriod, filterBySearch, isNew } from '../utils/filter'
 import { exportToExcel } from '../utils/excel'
+import CacheInfoBar from './CacheInfoBar'
 
 const PAGE_SIZE = 20
 const AUTO_FETCH_THRESHOLD = 1000  // 결과 내 검색용: 이 건수 이하면 1차 검색 후 자동 전체 fetch
@@ -335,6 +336,7 @@ export default function TabView({ tab, cacheStatus }) {
           {tab.description.map((d, i) => <li key={i}>{d}</li>)}
         </ul>
       </div>
+      <CacheInfoBar cacheStatus={cacheStatus} endpoints={[tab.id]} />
 
       {/* Server-filter search (C003) */}
       {isServerFilter && (

@@ -4,6 +4,7 @@ import TabView from './components/TabView'
 import NutrientAnalysisView from './components/NutrientAnalysisView'
 import IngredientDictView from './components/IngredientDictView'
 import { subscribeCacheStatus } from './api/hffCache'
+import { formatCacheDate } from './utils/cacheInfo'
 import './App.css'
 
 export default function App() {
@@ -23,13 +24,8 @@ export default function App() {
     if (cacheStatus.state === 'ready') {
       const count = cacheStatus.meta?.endpoints?.C003?.itemCount || 0
       const generatedAt = cacheStatus.meta?.generatedAt
-      const generatedText = generatedAt
-        ? ` 생성 시각: ${new Intl.DateTimeFormat('ko-KR', {
-          dateStyle: 'medium',
-          timeStyle: 'short',
-        }).format(new Date(generatedAt))}.`
-        : ''
-      return `캐시 ${count.toLocaleString()}건을 불러왔습니다.${generatedText}`
+      const generatedText = generatedAt ? ` 기준 시각: ${formatCacheDate(generatedAt)}.` : ''
+      return `GitHub Actions 정적 캐시 ${count.toLocaleString()}건을 불러왔습니다.${generatedText}`
     }
 
     if (cacheStatus.state === 'loading') {

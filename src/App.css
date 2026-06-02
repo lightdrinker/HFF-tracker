@@ -122,6 +122,32 @@ body {
 }
 .loading-hint { font-size: 13px; color: #64748b; }
 
+.cache-info-bar {
+  margin: -8px 0 20px;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.cache-info-bar.ready {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+}
+.cache-info-bar.loading {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.cache-info-bar.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 /* Buttons */
 .btn-primary {
   padding: 10px 24px;
