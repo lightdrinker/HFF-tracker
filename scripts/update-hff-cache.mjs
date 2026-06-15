@@ -203,6 +203,26 @@ async function fetchPage(access, endpoint, startIdx, endIdx, attempt = 1) {
   }
 }
 
+async function fetchRangeWithSplit(access, endpoint, startIdx, endIdx) {
+  try {
+    return await fetchPage(access, endpoint, startIdx, endIdx)
+  } catch (error) {
+    if (startIdx >= endIdx) throw error
+
+    const midpoint = Math.floor((startIdx + endIdx) / 2)
+    console.warn(`[cache] split ${endpoint} ${startIdx}-${endIdx}: ${error.message}`)
+
+    const left = await fetchRangeWithSplit(access, endpoint, startIdx, midpoint)
+    await sleep(SLEEP_MS)
+    const right = await fetchRangeWithSplit(access, endpoint, midpoint + 1, endIdx)
+
+    return {
+      totalCount: Math.max(left.totalCount, right.totalCount),
+      rows: [...left.rows, ...right.rows],
+    }
+  }
+}
+
 async function fetchEndpoint(access, endpoint) {
   const first = await fetchPage(access, endpoint, 1, 1)
   const totalCount = first.totalCount
@@ -220,7 +240,7 @@ async function fetchEndpoint(access, endpoint) {
   for (let index = 0; index < ranges.length; index += CONCURRENCY) {
     const batch = ranges.slice(index, index + CONCURRENCY)
     const results = await Promise.all(
-      batch.map(([start, end]) => fetchPage(access, endpoint, start, end)),
+      batch.map(([start, end]) => fetchRangeWithSplit(access, endpoint, start, end)),
     )
 
     for (const result of results) {
