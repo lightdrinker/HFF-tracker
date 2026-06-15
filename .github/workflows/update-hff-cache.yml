@@ -13,8 +13,10 @@ jobs:
   update-cache:
     runs-on: ubuntu-latest
     env:
+      HFF_PROXY_URL: https://hff-tracker.vercel.app/api/proxy
       HFF_API_KEY: ${{ secrets.HFF_API_KEY }}
       VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+      HFF_CACHE_PAGE_SIZE: 500
 
     steps:
       - name: Check out repository

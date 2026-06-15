@@ -94,14 +94,14 @@ async function loadDotEnvKey(fileName) {
 }
 
 async function loadAccess() {
+  const proxyUrl = process.env.HFF_PROXY_URL
+  if (proxyUrl) return { apiKey: null, proxyUrl }
+
   const key = process.env.HFF_API_KEY || process.env.VITE_API_KEY
   if (key) return { apiKey: key, proxyUrl: null }
 
   const localKey = await loadDotEnvKey('.env.local') || await loadDotEnvKey('.env')
   if (localKey) return { apiKey: localKey, proxyUrl: null }
-
-  const proxyUrl = process.env.HFF_PROXY_URL
-  if (proxyUrl) return { apiKey: null, proxyUrl }
 
   throw new Error('HFF_API_KEY, VITE_API_KEY, or HFF_PROXY_URL is required')
 }
