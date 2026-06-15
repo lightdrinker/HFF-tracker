@@ -1,4 +1,6 @@
 import fs from 'node:fs/promises'
+import http from 'node:http'
+import https from 'node:https'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -7,11 +9,12 @@ const ROOT = path.resolve(__dirname, '..')
 const OUT_FILE = path.join(ROOT, 'public', 'hff-cache.json')
 const PUBLIC_DIR = path.dirname(OUT_FILE)
 
-const API_BASE = 'http://openapi.foodsafetykorea.go.kr/api'
+const API_BASE = 'https://openapi.foodsafetykorea.go.kr/api'
 const PAGE_SIZE = Number(process.env.HFF_CACHE_PAGE_SIZE || 1000)
 const CONCURRENCY = Number(process.env.HFF_CACHE_CONCURRENCY || 3)
 const SLEEP_MS = Number(process.env.HFF_CACHE_SLEEP_MS || 200)
 const MAX_ATTEMPTS = Number(process.env.HFF_CACHE_MAX_ATTEMPTS || 5)
+const REQUEST_TIMEOUT_MS = Number(process.env.HFF_CACHE_REQUEST_TIMEOUT_MS || 30000)
 const C003_CHUNK_SIZE = Number(process.env.HFF_CACHE_C003_CHUNK_SIZE || 5000)
 const C003_CHUNK_PREFIX = 'hff-cache-c003'
 
@@ -124,14 +127,60 @@ function buildUrl(access, endpoint, startIdx, endIdx) {
   return `${API_BASE}/${access.apiKey}/${endpoint}/json/${startIdx}/${endIdx}`
 }
 
+function requestJson(url, redirectCount = 0) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url)
+    const client = parsedUrl.protocol === 'https:' ? https : http
+    const req = client.get(
+      parsedUrl,
+      {
+        headers: {
+          Accept: 'application/json',
+          'Accept-Encoding': 'identity',
+        },
+        timeout: REQUEST_TIMEOUT_MS,
+      },
+      (res) => {
+        const statusCode = res.statusCode || 0
+        const location = res.headers.location
+
+        if (statusCode >= 300 && statusCode < 400 && location && redirectCount < 3) {
+          res.resume()
+          resolve(requestJson(new URL(location, parsedUrl).toString(), redirectCount + 1))
+          return
+        }
+
+        const chunks = []
+        res.on('data', (chunk) => chunks.push(chunk))
+        res.on('end', () => {
+          const text = Buffer.concat(chunks).toString('utf8')
+
+          if (statusCode < 200 || statusCode >= 300) {
+            reject(new Error(`HTTP ${statusCode}: ${text.slice(0, 160)}`))
+            return
+          }
+
+          try {
+            resolve(JSON.parse(text))
+          } catch (error) {
+            reject(new Error(`Invalid JSON: ${error.message}`))
+          }
+        })
+      },
+    )
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`Request timeout after ${REQUEST_TIMEOUT_MS}ms`))
+    })
+    req.on('error', reject)
+  })
+}
+
 async function fetchPage(access, endpoint, startIdx, endIdx, attempt = 1) {
   const url = buildUrl(access, endpoint, startIdx, endIdx)
 
   try {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-    const data = await res.json()
+    const data = await requestJson(url)
     const body = getEndpointBody(data, endpoint)
     if (!body) throw new Error(`Missing ${endpoint} body`)
 
